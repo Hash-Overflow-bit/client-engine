@@ -1,0 +1,19 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getFunnelAnalytics, type AnalyticsRange } from './analytics';
+
+export async function loadWorkspaceAnalytics(supabase: SupabaseClient, workspaceId: string, range: AnalyticsRange) {
+  const [leads, qualificationRuns, researchRuns, deliveries, messages, meetings, proposals, classifications, overrides, reviews, deals] = await Promise.all([
+    supabase.from('leads').select('id,source,created_at').eq('workspace_id', workspaceId),
+    supabase.from('ai_runs').select('lead_id,created_at').eq('workspace_id', workspaceId).eq('operation', 'qualification'),
+    supabase.from('ai_runs').select('lead_id,created_at').eq('workspace_id', workspaceId).eq('operation', 'company_research'),
+    supabase.from('delivery_records').select('lead_id,campaign_id,sent_at').eq('workspace_id', workspaceId).eq('status', 'sent'),
+    supabase.from('messages').select('lead_id,campaign_id,direction,received_at').eq('workspace_id', workspaceId).eq('direction', 'inbound'),
+    supabase.from('meetings').select('lead_id,campaign_id,status,created_at').eq('workspace_id', workspaceId),
+    supabase.from('proposals').select('lead_id,created_at').eq('workspace_id', workspaceId),
+    supabase.from('reply_classifications').select('id,lead_id,intent,created_at').eq('workspace_id', workspaceId),
+    supabase.from('reply_classification_overrides').select('classification_id,selected_intent,created_at').eq('workspace_id', workspaceId).order('created_at', { ascending: false }),
+    supabase.from('reply_classification_reviews').select('classification_id,status,created_at').eq('workspace_id', workspaceId),
+    supabase.from('deals').select('lead_id,campaign_id,source,service_id,status,value,currency,created_at,won_at,lost_at').eq('workspace_id', workspaceId),
+  ]);
+  return getFunnelAnalytics({ leads: (leads.data ?? []).map((row) => ({ id: String(row.id), source: row.source, createdAt: String(row.created_at) })), qualificationRuns: (qualificationRuns.data ?? []).map((row) => ({ leadId: row.lead_id ? String(row.lead_id) : null, createdAt: String(row.created_at) })), researchRuns: (researchRuns.data ?? []).map((row) => ({ leadId: row.lead_id ? String(row.lead_id) : null, createdAt: String(row.created_at) })), deliveries: (deliveries.data ?? []).map((row) => ({ leadId: String(row.lead_id), campaignId: row.campaign_id ? String(row.campaign_id) : null, sentAt: row.sent_at ? String(row.sent_at) : null })), messages: (messages.data ?? []).map((row) => ({ leadId: String(row.lead_id), campaignId: row.campaign_id ? String(row.campaign_id) : null, direction: String(row.direction), receivedAt: row.received_at ? String(row.received_at) : null })), meetings: (meetings.data ?? []).map((row) => ({ leadId: String(row.lead_id), campaignId: row.campaign_id ? String(row.campaign_id) : null, status: String(row.status), createdAt: String(row.created_at) })), proposals: (proposals.data ?? []).map((row) => ({ leadId: String(row.lead_id), createdAt: String(row.created_at) })), classifications: (classifications.data ?? []).map((row) => ({ id: String(row.id), leadId: String(row.lead_id), intent: row.intent, createdAt: String(row.created_at) })), overrides: (overrides.data ?? []).map((row) => ({ classificationId: String(row.classification_id), selectedIntent: String(row.selected_intent), createdAt: String(row.created_at) })), reviews: (reviews.data ?? []).map((row) => ({ classificationId: String(row.classification_id), status: String(row.status), createdAt: String(row.created_at) })), deals: (deals.data ?? []).map((row) => ({ leadId: row.lead_id ? String(row.lead_id) : null, campaignId: row.campaign_id ? String(row.campaign_id) : null, source: row.source, serviceId: row.service_id, status: String(row.status), value: row.value, currency: row.currency, createdAt: String(row.created_at), wonAt: row.won_at ? String(row.won_at) : null, lostAt: row.lost_at ? String(row.lost_at) : null })) }, range);
+}

@@ -1,0 +1,2 @@
+-- Intentionally empty. Add synthetic development fixtures after the initial schema migration.
+-- Never insert real contact data into committed seeds.

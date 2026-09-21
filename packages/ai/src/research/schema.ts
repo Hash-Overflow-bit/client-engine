@@ -1,0 +1,9 @@
+import { z } from 'zod';
+
+export const researchEvidenceSchema = z.strictObject({ url: z.string().url(), reasoning: z.string().trim().min(1).max(300) });
+export const companyResearchSchema = z.strictObject({
+  companySummary: z.string().trim().min(1).max(1000), productSummary: z.string().trim().min(1).max(1000), targetCustomer: z.string().trim().min(1).max(500), apparentStage: z.string().trim().min(1).max(240), recommendedService: z.string().trim().min(1).max(300), portfolioMatch: z.string().trim().min(1).max(300),
+  verifiedSignals: z.array(researchEvidenceSchema).max(12), possibleNeeds: z.array(z.string().trim().min(1).max(300)).max(12), personalizationAngles: z.array(researchEvidenceSchema).max(12), confidence: z.number().min(0).max(1), usableForOutreach: z.boolean(), needsReview: z.boolean(),
+}).strict();
+export type CompanyResearch = z.infer<typeof companyResearchSchema>;
+export const companyResearchJsonSchema = { type: 'object', properties: { companySummary:{type:'string'},productSummary:{type:'string'},targetCustomer:{type:'string'},apparentStage:{type:'string'},recommendedService:{type:'string'},portfolioMatch:{type:'string'},verifiedSignals:{type:'array',items:{type:'object',properties:{url:{type:'string'},reasoning:{type:'string'}},required:['url','reasoning'],additionalProperties:false}},possibleNeeds:{type:'array',items:{type:'string'}},personalizationAngles:{type:'array',items:{type:'object',properties:{url:{type:'string'},reasoning:{type:'string'}},required:['url','reasoning'],additionalProperties:false}},confidence:{type:'number'},usableForOutreach:{type:'boolean'},needsReview:{type:'boolean'}},required:['companySummary','productSummary','targetCustomer','apparentStage','recommendedService','portfolioMatch','verifiedSignals','possibleNeeds','personalizationAngles','confidence','usableForOutreach','needsReview'],additionalProperties:false} as const;

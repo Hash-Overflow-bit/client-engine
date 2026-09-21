@@ -1,0 +1,7 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { CompanyResearchRun, ResearchCache } from '@client-engine/ai';
+export class SupabaseCompanyResearchStore implements ResearchCache {
+  constructor(private readonly client: SupabaseClient) {}
+  async get(companyId: string, freshWithinMs: number): Promise<CompanyResearchRun | null> { const cutoff = new Date(Date.now() - freshWithinMs).toISOString(); const result = await this.client.from('companies').select('id,name,domain,research_status,research_output,research_updated_at,research_error').eq('id', companyId).gt('research_updated_at', cutoff).eq('research_status', 'researched').maybeSingle(); if (result.error) throw new Error(`Unable to read company research: ${result.error.message}`); if (!result.data || typeof result.data.domain !== 'string' || !result.data.research_output) return null; return { companyId: String(result.data.id), company: { name: String(result.data.name), domain: result.data.domain }, status: 'researched', research: result.data.research_output as CompanyResearchRun['research'], documents: [] }; }
+  async save(run: CompanyResearchRun): Promise<void> { const result = await this.client.from('companies').update({ research_status: run.status, research_output: run.research, research_confidence: run.research?.confidence ?? null, research_updated_at: new Date().toISOString(), research_error: run.error ?? null }).eq('id', run.companyId); if (result.error) throw new Error(`Unable to save company research: ${result.error.message}`); }
+}

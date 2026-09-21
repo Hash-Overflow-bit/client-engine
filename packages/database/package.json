@@ -1,0 +1,19 @@
+{
+  "name": "@client-engine/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@client-engine/ai": "*",
+    "@client-engine/integrations": "*",
+    "@client-engine/shared": "*",
+    "@client-engine/delivery": "*",
+    "@client-engine/conversations": "*",
+    "@client-engine/reply-classification": "*",
+    "@client-engine/follow-ups": "*",
+    "@supabase/supabase-js": "2.116.0"
+  }
+}

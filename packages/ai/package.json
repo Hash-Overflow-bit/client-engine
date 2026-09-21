@@ -1,0 +1,15 @@
+{
+  "name": "@client-engine/ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@client-engine/shared": "*",
+    "@client-engine/follow-ups": "*",
+    "@client-engine/reply-classification": "*",
+    "zod": "4.6.5"
+  }
+}

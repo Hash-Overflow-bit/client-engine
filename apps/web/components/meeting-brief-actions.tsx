@@ -1,0 +1,4 @@
+'use client';
+import { useState } from 'react';
+import { generateMeetingBriefAction } from '../app/actions/meeting-briefs';
+export function MeetingBriefActions({meetingId,hasBrief}:Readonly<{meetingId:string;hasBrief:boolean}>){const[busy,setBusy]=useState(false);const[msg,setMsg]=useState('');async function run(regenerate:boolean){setBusy(true);const r=await generateMeetingBriefAction(meetingId,regenerate);setBusy(false);setMsg(r.ok?'Brief generated':r.error??'Unable to generate brief');}return <div className="mt-3"><button disabled={busy} onClick={()=>void run(hasBrief)} className="rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold disabled:opacity-50">{hasBrief?'Regenerate Brief':'Generate Brief'}</button>{msg&&<p className="mt-1 text-xs text-slate-600">{msg}</p>}</div>}

@@ -1,0 +1,19 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { PageShell } from '../../../components/page-shell';
+import { createClient } from '../../../lib/supabase/server';
+import { MeetingBriefActions } from '../../../components/meeting-brief-actions';
+
+export const metadata: Metadata = { title: 'Meetings' };
+export const dynamic = 'force-dynamic';
+export default async function MeetingsPage() {
+  const supabase=await createClient(); const {data:{user}}=await supabase.auth.getUser();
+  if(!user)return <PageShell title="Meetings" description="Sign in to view booked meetings."/>;
+  const {data:member}=await supabase.from('workspace_members').select('workspace_id').eq('user_id',user.id).order('created_at',{ascending:true}).limit(1).maybeSingle();
+  if(!member?.workspace_id)return <PageShell title="Meetings" description="No authorized workspace."/>;
+  const {data:meetings}=await supabase.from('meetings').select('id,lead_id,title,starts_at,timezone,meeting_url,status,provider').eq('workspace_id',member.workspace_id).order('starts_at',{ascending:true});
+  const meetingIds=(meetings??[]).map(m=>m.id); const {data:briefs}=meetingIds.length?await supabase.from('meeting_briefs').select('id,meeting_id,version,confidence,needs_review,warnings,company_summary,conversation_summary,verified_facts,assumptions,unknowns,discovery_questions').eq('workspace_id',member.workspace_id).in('meeting_id',meetingIds).order('version',{ascending:false}):{data:[]};
+  const ids=[...new Set((meetings??[]).map(m=>m.lead_id))]; const {data:leads}=ids.length?await supabase.from('leads').select('id,name').eq('workspace_id',member.workspace_id).in('id',ids):{data:[]};
+  const rows=meetings??[]; const groups=[{title:'Upcoming',rows:rows.filter(m=>m.status==='scheduled')},{title:'Past',rows:rows.filter(m=>m.status==='completed')},{title:'Cancelled',rows:rows.filter(m=>['cancelled','canceled','no_show'].includes(m.status))}];
+  return <PageShell title="Meetings" description="Confirmed meetings are canonical records. Briefs are human preparation only and never send anything."><div className="space-y-8">{groups.map(group=><section key={group.title}><h2 className="text-lg font-semibold">{group.title}</h2><div className="mt-3 space-y-3">{group.rows.length?group.rows.map(m=>{const lead=(leads??[]).find(l=>l.id===m.lead_id);const brief=(briefs??[]).find(b=>b.meeting_id===m.id);return <article key={m.id} className="rounded-xl border bg-white p-4"><p className="font-semibold">{m.title} · {lead?.name??'Unknown lead'}</p><p className="mt-1 text-sm text-slate-600">{new Date(m.starts_at).toLocaleString()} · {m.timezone} · {m.provider}</p><p className="mt-1 text-xs font-semibold uppercase text-slate-500">{m.status}</p><div className="mt-2 flex gap-3 text-sm">{m.meeting_url&&<a className="text-blue-700 underline" href={m.meeting_url}>Open meeting</a>}<Link className="text-blue-700 underline" href={`/leads/${m.lead_id}`}>View lead</Link></div>{brief&&<div className="mt-4 rounded-lg bg-slate-50 p-3"><p className="text-xs font-semibold">Brief v{brief.version} · {Math.round(Number(brief.confidence)*100)}%{brief.needs_review?' · Needs review':''}</p><p className="mt-2 text-sm font-semibold">Company summary</p><p className="text-sm">{brief.company_summary}</p><p className="mt-2 text-sm font-semibold">Conversation summary</p><p className="text-sm">{brief.conversation_summary}</p>{Array.isArray(brief.discovery_questions)&&<><p className="mt-2 text-sm font-semibold">Discovery questions</p><ul className="list-disc pl-5 text-sm">{brief.discovery_questions.map((q:string)=><li key={q}>{q}</li>)}</ul></>}</div>}{m.status==='scheduled'&&<MeetingBriefActions meetingId={m.id} hasBrief={Boolean(brief)} />}</article>}):<p className="rounded-xl border border-dashed p-4 text-sm text-slate-500">No meetings.</p>}</div></section>)}</div></PageShell>;
+}

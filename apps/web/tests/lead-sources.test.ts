@@ -1,0 +1,3 @@
+import { describe, expect, it } from 'vitest';
+import { ManualLeadSource, parseLeadCsv } from '@client-engine/integrations';
+describe('manual lead source', () => { it('imports and enriches CSV leads', async () => { const source = new ManualLeadSource(parseLeadCsv('name,email,companyName,domain,role\nAlex,alex@example.com,InvoiceAI,invoice.ai,Founder')); const prospects = await source.search({}); const lead = await source.enrich(prospects[0]); expect(lead.source).toBe('manual'); expect(lead.sourceExternalId).toBe('manual-1'); }); it('validates malformed rows', () => expect(() => parseLeadCsv('name,email\nAlex,bad')).toThrow()); });

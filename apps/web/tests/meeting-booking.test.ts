@@ -1,0 +1,6 @@
+import { describe, expect, it } from 'vitest';
+import { ManualBookingProvider, canCreateMeetingOpportunity } from '@client-engine/meetings';
+describe('meeting booking foundation',()=>{
+ it('prepares manual booking without a send capability',async()=>{const provider=new ManualBookingProvider();const result=await provider.prepareBooking({provider:'manual',bookingUrl:'https://example.com/book',defaultDuration:15,timezone:'Asia/Karachi',title:'Discovery call',leadId:'lead',conversationId:'conversation'});expect(result.bookingUrl).toBe('https://example.com/book');expect('send' in provider).toBe(false);});
+ it('requires an effective positive intent unless a human explicitly authorizes the path',()=>{const context={workspaceMatches:true,effectiveIntent:'POSITIVE' as const,doNotContact:false,unsubscribed:false,leadClosedLost:false,hasActiveMeeting:false};expect(canCreateMeetingOpportunity(context)).toBe(true);expect(canCreateMeetingOpportunity({...context,effectiveIntent:'QUESTION'})).toBe(false);expect(canCreateMeetingOpportunity({...context,effectiveIntent:'QUESTION',explicitAuthorizedAction:true})).toBe(true);expect(canCreateMeetingOpportunity({...context,doNotContact:true})).toBe(false);});
+});

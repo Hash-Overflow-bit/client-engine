@@ -1,0 +1,11 @@
+begin;
+alter table public.ai_runs drop constraint if exists ai_runs_operation_check;
+alter table public.ai_runs add constraint ai_runs_operation_check check (operation in ('qualification','company_research','outreach_generation','outreach_draft','reply_classification','meeting_brief','proposal_draft'));
+alter table public.outreach_drafts add column if not exists approved_by uuid references auth.users(id) on delete set null;
+drop policy if exists outreach_drafts_workspace_access on public.outreach_drafts;
+create policy outreach_drafts_read_member on public.outreach_drafts for select to authenticated using (workspace_id in (select workspace_id from public.workspace_members where user_id = (select auth.uid())));
+create policy outreach_drafts_insert_member on public.outreach_drafts for insert to authenticated with check (workspace_id in (select workspace_id from public.workspace_members where user_id = (select auth.uid())));
+create policy outreach_drafts_update_member on public.outreach_drafts for update to authenticated using (workspace_id in (select workspace_id from public.workspace_members where user_id = (select auth.uid()))) with check (workspace_id in (select workspace_id from public.workspace_members where user_id = (select auth.uid())));
+grant select, insert, update on public.outreach_drafts to authenticated;
+grant insert on public.activities to authenticated;
+commit;
