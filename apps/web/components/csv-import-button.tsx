@@ -1,0 +1,4 @@
+'use client';
+import { useRef, useState, useTransition } from 'react';
+import { importLeadsCsvAction } from '../app/actions/leads';
+export function CsvImportButton() { const input=useRef<HTMLInputElement>(null); const [busy,start]=useTransition(); const [message,setMessage]=useState(''); return <><button type="button" disabled={busy} onClick={()=>input.current?.click()} className="rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600">{busy?'Importing…':'Import CSV'}</button><input ref={input} type="file" accept=".csv,text/csv" className="hidden" onChange={(event)=>{const file=event.target.files?.[0];if(!file)return;start(async()=>{const result=await importLeadsCsvAction(await file.text());setMessage(result.ok?`${result.imported} lead${result.imported===1?'':'s'} imported`:result.error??'Import failed');event.target.value='';});}} />{message&&<span role="status" className="self-center text-xs text-slate-500">{message}</span>}</>; }

@@ -1,19 +1,10 @@
-import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { funnelStages, leadsForStage, type FunnelStage, type Lead } from '../lib/crm-data';
 
-const stageLabels: Record<FunnelStage, string> = {
-  new: 'New',
-  qualified: 'Qualified',
-  ready: 'Ready',
-  contacted: 'Contacted',
-  replied: 'Replied',
-  meeting: 'Meeting',
-  proposal: 'Proposal',
-  won: 'Won',
+const stageLabels: Record<string, string> = {
+  new: 'New', qualified: 'Qualified', ready: 'Ready', contacted: 'Contacted', replied: 'Replied', meeting: 'Meeting', proposal: 'Proposal', won: 'Won',
 };
 
-const stageStyles: Record<FunnelStage, string> = {
+const stageStyles: Record<string, string> = {
   new: 'bg-slate-100 text-slate-700',
   qualified: 'bg-blue-50 text-blue-700',
   ready: 'bg-indigo-50 text-indigo-700',
@@ -35,7 +26,7 @@ const metricStyles = {
   green: 'border-green-100 bg-green-50/50',
 } as const;
 
-export function StageBadge({ stage }: Readonly<{ stage: FunnelStage }>) {
+export function StageBadge({ stage }: Readonly<{ stage: string }>) {
   return <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${stageStyles[stage]}`}>{stageLabels[stage]}</span>;
 }
 
@@ -44,7 +35,7 @@ export function ScoreBadge({ score }: Readonly<{ score: number }>) {
   return <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${color}`}><span className="h-1.5 w-1.5 rounded-full bg-current" />{score}/100</span>;
 }
 
-export function Avatar({ lead, size = 'md' }: Readonly<{ lead: Pick<Lead, 'initials'>; size?: 'sm' | 'md' | 'lg' }>) {
+export function Avatar({ lead, size = 'md' }: Readonly<{ lead: { initials: string }; size?: 'sm' | 'md' | 'lg' }>) {
   const sizes = { sm: 'h-8 w-8 text-[11px]', md: 'h-10 w-10 text-xs', lg: 'h-14 w-14 text-sm' } as const;
   return <div aria-hidden="true" className={`flex shrink-0 items-center justify-center rounded-2xl bg-slate-900 font-semibold text-white ${sizes[size]}`}>{lead.initials}</div>;
 }
@@ -62,28 +53,6 @@ export function SectionCard({ title, description, action, children, className = 
     <div className="flex items-start justify-between gap-4 border-b border-slate-100 px-5 py-4"><div><h2 className="text-sm font-semibold text-slate-950">{title}</h2>{description ? <p className="mt-1 text-xs text-slate-500">{description}</p> : null}</div>{action}</div>
     {children}
   </section>;
-}
-
-export function LeadRow({ lead, compact = false }: Readonly<{ lead: Lead; compact?: boolean }>) {
-  return <Link href={`/leads/${lead.id}`} className="group flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-slate-50">
-    <Avatar lead={lead} size={compact ? 'sm' : 'md'} />
-    <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950 group-hover:text-blue-700">{lead.name}</p><p className="truncate text-xs text-slate-500">{lead.role} · {lead.company}</p></div>
-    {!compact ? <><StageBadge stage={lead.stage} /><ScoreBadge score={lead.score} /></> : null}
-  </Link>;
-}
-
-export function PipelineBoard({ compact = false }: Readonly<{ compact?: boolean }>) {
-  const stages = compact ? funnelStages.filter((stage) => ['new', 'qualified', 'contacted', 'replied', 'meeting', 'proposal', 'won'].includes(stage)) : funnelStages;
-  return <div className={`grid gap-3 ${compact ? 'grid-cols-2 xl:grid-cols-4' : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-4'}`}>
-    {stages.map((stage) => {
-      const stageLeads = leadsForStage(stage);
-      return <div className="min-h-36 rounded-xl bg-slate-50 p-3" key={stage}>
-        <div className="mb-3 flex items-center justify-between"><h3 className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">{stageLabels[stage]}</h3><span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">{stageLeads.length}</span></div>
-        <div className="space-y-2">{stageLeads.slice(0, compact ? 2 : undefined).map((lead) => <div className="rounded-xl border border-slate-200 bg-white shadow-sm" key={lead.id}><LeadRow lead={lead} compact /></div>)}{stageLeads.length === 0 ? <p className="rounded-lg border border-dashed border-slate-200 px-3 py-4 text-center text-xs text-slate-400">No leads yet</p> : null}</div>
-        {compact && stageLeads.length > 2 ? <p className="mt-2 text-center text-[11px] font-medium text-slate-500">+{stageLeads.length - 2} more</p> : null}
-      </div>;
-    })}
-  </div>;
 }
 
 export function EmptyState({ title, description, action }: Readonly<{ title: string; description: string; action?: ReactNode }>) {

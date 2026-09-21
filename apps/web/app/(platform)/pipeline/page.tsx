@@ -1,10 +1,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { PipelineBoard } from '../../../components/crm-components';
 import { PageShell } from '../../../components/page-shell';
+import { EmptyState, SectionCard } from '../../../components/crm-components';
+import { authorizeWorkspace, loadWorkspaceLeads } from '../../../lib/live-crm';
 export const metadata: Metadata = { title: 'Pipeline' };
-export default function PipelinePage() {
-  return <PageShell title="Pipeline" description="Track leads from discovery through won clients. Drag-and-drop is intentionally disabled until stage transitions are connected to the database.">
-    <div className="space-y-5"><div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm"><div><p className="text-sm font-semibold text-slate-900">8 visible leads</p><p className="mt-1 text-xs text-slate-500">Each card opens the complete lead record and next action.</p></div><Link className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50" href="/leads">View list</Link></div><PipelineBoard /></div>
-  </PageShell>;
-}
+export const dynamic = 'force-dynamic';
+const stages = ['new','qualified','ready','contacted','replied','meeting','proposal','won'] as const;
+export default async function PipelinePage() { let leads: Awaited<ReturnType<typeof loadWorkspaceLeads>> = []; let error: string | null = null; try { leads=await loadWorkspaceLeads(await authorizeWorkspace()); } catch (cause) { error=cause instanceof Error?cause.message:'Database unavailable'; } return <PageShell title="Pipeline" description="Live workspace pipeline from Supabase.">{error ? <SectionCard title="Pipeline unavailable"><EmptyState title="Unable to load pipeline" description={error} /></SectionCard> : <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{stages.map((stage)=><section key={stage} className="min-h-36 rounded-xl bg-slate-50 p-3"><div className="mb-3 flex items-center justify-between"><h2 className="text-xs font-semibold uppercase tracking-[0.13em] text-slate-500">{stage}</h2><span className="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-slate-500">{leads.filter((lead)=>lead.stage===stage).length}</span></div><div className="space-y-2">{leads.filter((lead)=>lead.stage===stage).map((lead)=><Link key={lead.id} href={`/leads/${lead.id}`} className="block rounded-xl border border-slate-200 bg-white p-3 shadow-sm"><p className="text-sm font-semibold text-slate-900">{lead.name}</p><p className="mt-1 text-xs text-slate-500">{lead.company}</p></Link>)}</div></section>)}</div>}</PageShell>; }

@@ -1,5 +1,29 @@
 # Verification
 
+## Live CRM rebuild — 2026-09-22
+
+Replaced active lead, detail, pipeline and dashboard fixture reads with
+authenticated, workspace-scoped Supabase reads. Added server-side manual lead
+ingestion through the existing validated ingestion/deduplication path, live
+lead empty/error states, and lead-detail controls for qualification, research,
+outreach generation/review, delivery preparation, marking sent and recording a
+reply. Existing authenticated actions remain the authority for reply
+classification, follow-ups, meetings, briefs, discovery, proposals and deal
+outcomes.
+
+| Required check | Result |
+| --- | --- |
+| `npm run typecheck` | Passed |
+| `npm run lint` | Passed with zero warnings |
+| `npm test -- --run` | Passed; 112 tests across 25 files |
+| `npm run build` | Passed with `next build --webpack`; the prior default Turbopack path panicked while binding its CSS worker port in this environment |
+| `git diff --check` | Passed |
+| Hosted Supabase/RLS integration tests | Not run; no connected staging project or authenticated test users are available |
+
+No real email or external provider send was performed. The application does
+not fall back to demo CRM records from the active `/leads`, `/leads/[id]`,
+`/pipeline` or dashboard routes.
+
 ## Milestone 18 — production readiness and controlled launch
 
 M18 adds no new acquisition, delivery, payment, or autonomous-sales feature.

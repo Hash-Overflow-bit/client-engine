@@ -209,7 +209,7 @@ export class ApolloProspectProvider implements LeadSource {
 }
 
 export type ManualLeadInput = Readonly<{ sourceExternalId?: string | null; name: string; email?: string | null; role?: string | null; companyName: string; domain?: string | null; website?: string | null; industry?: string | null; employeeCount?: number | null; linkedinUrl?: string | null }>;
-const manualLeadInputSchema = z.strictObject({ sourceExternalId: optionalNonEmpty, name: nonEmpty, email: z.string().email().nullish(), role: optionalNonEmpty, companyName: nonEmpty, domain: optionalNonEmpty, website: url, industry: optionalNonEmpty, employeeCount: z.number().int().nonnegative().nullish(), linkedinUrl: url });
+export const manualLeadInputSchema = z.strictObject({ sourceExternalId: optionalNonEmpty, name: nonEmpty, email: z.string().email().nullish(), role: optionalNonEmpty, companyName: nonEmpty, domain: optionalNonEmpty, website: url, industry: optionalNonEmpty, employeeCount: z.number().int().nonnegative().nullish(), linkedinUrl: url });
 
 export class ManualLeadSource implements LeadSource {
   readonly source = 'manual';
