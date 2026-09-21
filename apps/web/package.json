@@ -9,7 +9,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@client-engine/ai": "*",
+    "@client-engine/conversations": "*",
+    "@client-engine/database": "*",
+    "@client-engine/delivery": "*",
+    "@client-engine/follow-ups": "*",
+    "@client-engine/integrations": "*",
     "@client-engine/meetings": "*",
+    "@client-engine/reply-classification": "*",
     "@client-engine/shared": "*",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.116.0",
